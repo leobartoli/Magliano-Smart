@@ -56,7 +56,7 @@ services:
       - backend
 
   # =================================
-  # 3. AI / TTS / STT
+  # 3. AI
   # =================================
   ollama:
     container_name: ollama
@@ -73,15 +73,6 @@ services:
               capabilities: [gpu]
     volumes:
       - ollama_data:/root/.ollama
-    networks:
-      - backend
-
-  wyoming:
-    container_name: wyoming
-    image: ghcr.io/utente/wyoming:latest
-    restart: unless-stopped
-    volumes:
-      - wyoming_cache:/cache
     networks:
       - backend
 
@@ -126,8 +117,6 @@ services:
     volumes:
       - homeassistant_data:/config
     network_mode: host
-    devices:
-      - ${HOMEASSISTANT_DEVICE}:${HOMEASSISTANT_DEVICE}
 
   # =================================
   # 7. GIS / QGIS
@@ -195,7 +184,6 @@ volumes:
   pg_data:
   redis_data:
   ollama_data:
-  wyoming_cache:
   minio_data:
   filebrowser_data:
   homeassistant_data:
@@ -207,4 +195,4 @@ volumes:
 # =================================
 networks:
   backend:
-    driver: bridge
+    driver: 
