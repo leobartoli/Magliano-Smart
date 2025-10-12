@@ -13,6 +13,9 @@ services:
       - N8N_BASIC_AUTH_ACTIVE=${N8N_BASIC_AUTH_ACTIVE}
       - N8N_BASIC_AUTH_USER=${N8N_BASIC_AUTH_USER}
       - N8N_BASIC_AUTH_PASSWORD=${N8N_BASIC_AUTH_PASSWORD}
+      - N8N_HOST=${N8N_HOST}
+      - N8N_PROTOCOL=https
+      - WEBHOOK_URL=https://${N8N_HOST}
       - DB_TYPE=${DB_TYPE}
       - DB_POSTGRESDB_HOST=${DB_POSTGRESDB_HOST}
       - DB_POSTGRESDB_PORT=${DB_POSTGRESDB_PORT}
@@ -62,6 +65,8 @@ services:
     container_name: ollama
     image: ollama/ollama:latest
     restart: unless-stopped
+    ports:
+      - "127.0.0.1:11434:11434"
     environment:
       - NVIDIA_VISIBLE_DEVICES=${OLLAMA_GPU}
     deploy:
@@ -83,6 +88,9 @@ services:
     container_name: minio
     image: minio/minio:latest
     restart: unless-stopped
+    ports:
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
     environment:
       - MINIO_ROOT_USER=${MINIO_ROOT_USER}
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
@@ -99,6 +107,8 @@ services:
     container_name: filebrowser
     image: filebrowser/filebrowser:latest
     restart: unless-stopped
+    ports:
+      - "127.0.0.1:8081:80"
     environment:
       - PUID=${FILEBROWSER_PUID}
       - PGID=${FILEBROWSER_PGID}
@@ -125,6 +135,8 @@ services:
     container_name: qgis-server
     image: kartoza/qgis-server:latest
     restart: unless-stopped
+    ports:
+      - "127.0.0.1:8082:80"
     volumes:
       - qgis_projects:/projects
     networks:
@@ -137,6 +149,8 @@ services:
     container_name: adminer
     image: adminer:latest
     restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:8080"
     networks:
       - backend
 
@@ -195,4 +209,4 @@ volumes:
 # =================================
 networks:
   backend:
-    driver: 
+    driver: bridge
