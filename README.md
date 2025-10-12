@@ -1,6 +1,3 @@
-Perfetto! Ecco un **README.md completo pronto da inserire** nel repository **Magliano-Smart**, strutturato in modo chiaro, sintetico e descrittivo, con link alla documentazione interna:
-
----
 
 # Magliano-Smart
 
@@ -73,7 +70,3 @@ Magliano-Smart/
 ## **Note finali**
 
 Questo repository è progettato per essere **modulare e scalabile**, pronto per gestire più edifici, uffici e flussi tecnici comunali senza complicazioni.
-
----
-
-Se vuoi, posso anche creare una **versione più “GitHub-friendly”** da usare come **descrizione breve del repository**, sotto i 340 caratteri, pronta da inserire nel campo Description. Vuoi che lo faccia?
