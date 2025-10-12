@@ -23,7 +23,7 @@ services:
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PORT=${REDIS_PORT}
     volumes:
-      - ${N8N_DATA_PATH}:/home/node/.n8n
+      - n8n_data:/home/node/.n8n
     depends_on:
       - postgres
       - redis
@@ -42,8 +42,7 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
     volumes:
-      - ${PG_DATA_PATH}:/var/lib/postgresql/data
-      - ./init-db.sql:/docker-entrypoint-initdb.d/init.sql
+      - pg_data:/var/lib/postgresql/data
     networks:
       - backend
 
@@ -52,7 +51,7 @@ services:
     image: redis:7
     restart: unless-stopped
     volumes:
-      - ${REDIS_DATA_PATH}:/data
+      - redis_data:/data
     networks:
       - backend
 
@@ -72,6 +71,8 @@ services:
             - driver: nvidia
               count: all
               capabilities: [gpu]
+    volumes:
+      - ollama_data:/root/.ollama
     networks:
       - backend
 
@@ -80,7 +81,7 @@ services:
     image: ghcr.io/utente/wyoming:latest
     restart: unless-stopped
     volumes:
-      - ${WYOMING_CACHE_PATH}:/cache
+      - wyoming_cache:/cache
     networks:
       - backend
 
@@ -96,7 +97,7 @@ services:
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
     command: server /data --console-address ":9001"
     volumes:
-      - ${MINIO_DATA_PATH}:/data
+      - minio_data:/data
     networks:
       - backend
 
@@ -111,7 +112,7 @@ services:
       - PUID=${FILEBROWSER_PUID}
       - PGID=${FILEBROWSER_PGID}
     volumes:
-      - ${FILEBROWSER_DATA_PATH}:/srv
+      - filebrowser_data:/srv
     networks:
       - backend
 
@@ -123,7 +124,7 @@ services:
     image: ghcr.io/home-assistant/home-assistant:stable
     restart: unless-stopped
     volumes:
-      - ${HOMEASSISTANT_DATA_PATH}:/config
+      - homeassistant_data:/config
     network_mode: host
     devices:
       - ${HOMEASSISTANT_DEVICE}:${HOMEASSISTANT_DEVICE}
@@ -136,7 +137,7 @@ services:
     image: kartoza/qgis-server:latest
     restart: unless-stopped
     volumes:
-      - ${QGIS_PROJECTS_PATH}:/projects
+      - qgis_projects:/projects
     networks:
       - backend
 
@@ -175,9 +176,8 @@ services:
     devices:
       - /dev/net/tun
     volumes:
-      - ./volumes/zerotier:/var/lib/zerotier-one
-    networks:
-      - backend
+      - zerotier_data:/var/lib/zerotier-one
+    network_mode: host
 
   cloudflared:
     container_name: cloudflared
@@ -188,7 +188,22 @@ services:
       - backend
 
 # =================================
-# Rete interna
+# Volumi
+# =================================
+volumes:
+  n8n_data:
+  pg_data:
+  redis_data:
+  ollama_data:
+  wyoming_cache:
+  minio_data:
+  filebrowser_data:
+  homeassistant_data:
+  qgis_projects:
+  zerotier_data:
+
+# =================================
+# Rete
 # =================================
 networks:
   backend:
