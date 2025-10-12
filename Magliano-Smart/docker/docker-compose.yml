@@ -9,8 +9,6 @@ services:
     container_name: n8n
     image: n8nio/n8n:latest
     restart: unless-stopped
-    ports:
-      - "5678:5678"
     environment:
       - N8N_BASIC_AUTH_ACTIVE=${N8N_BASIC_AUTH_ACTIVE}
       - N8N_BASIC_AUTH_USER=${N8N_BASIC_AUTH_USER}
@@ -65,8 +63,6 @@ services:
     container_name: ollama
     image: ollama/ollama:latest
     restart: unless-stopped
-    ports:
-      - "11434:11434"
     environment:
       - NVIDIA_VISIBLE_DEVICES=${OLLAMA_GPU}
     deploy:
@@ -83,8 +79,6 @@ services:
     container_name: wyoming
     image: ghcr.io/utente/wyoming:latest
     restart: unless-stopped
-    ports:
-      - "10300:10300"
     volumes:
       - ${WYOMING_CACHE_PATH}:/cache
     networks:
@@ -97,9 +91,6 @@ services:
     container_name: minio
     image: minio/minio:latest
     restart: unless-stopped
-    ports:
-      - "9000:9000"
-      - "9001:9001"
     environment:
       - MINIO_ROOT_USER=${MINIO_ROOT_USER}
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
@@ -116,8 +107,6 @@ services:
     container_name: filebrowser
     image: filebrowser/filebrowser:latest
     restart: unless-stopped
-    ports:
-      - "8081:80"
     environment:
       - PUID=${FILEBROWSER_PUID}
       - PGID=${FILEBROWSER_PGID}
@@ -146,8 +135,6 @@ services:
     container_name: qgis-server
     image: kartoza/qgis-server:latest
     restart: unless-stopped
-    ports:
-      - "8082:80"
     volumes:
       - ${QGIS_PROJECTS_PATH}:/projects
     networks:
@@ -160,8 +147,6 @@ services:
     container_name: adminer
     image: adminer:latest
     restart: unless-stopped
-    ports:
-      - "8080:8080"
     networks:
       - backend
 
