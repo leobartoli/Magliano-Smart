@@ -9,6 +9,8 @@ services:
     container_name: n8n
     image: n8nio/n8n:latest
     restart: unless-stopped
+    ports:
+      - "5678:5678"
     environment:
       - N8N_BASIC_AUTH_ACTIVE=${N8N_BASIC_AUTH_ACTIVE}
       - N8N_BASIC_AUTH_USER=${N8N_BASIC_AUTH_USER}
@@ -29,7 +31,6 @@ services:
       - redis
     networks:
       - backend
-      - zerotier
 
   # =================================
   # 2. Database
@@ -44,14 +45,9 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
     volumes:
       - ${PG_DATA_PATH}:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - backend
-    command: >
-      bash -c "
-      docker-entrypoint.sh postgres &
-      sleep 5 &&
-      psql -U ${POSTGRES_USER} -d ${POSTGRES_DB} -c 'CREATE EXTENSION IF NOT EXISTS vector;' &&
-      fg"
 
   redis:
     container_name: redis
@@ -69,6 +65,8 @@ services:
     container_name: ollama
     image: ollama/ollama:latest
     restart: unless-stopped
+    ports:
+      - "11434:11434"
     environment:
       - NVIDIA_VISIBLE_DEVICES=${OLLAMA_GPU}
     deploy:
@@ -85,8 +83,10 @@ services:
     container_name: wyoming
     image: ghcr.io/utente/wyoming:latest
     restart: unless-stopped
+    ports:
+      - "10300:10300"
     volumes:
-      - ${WYOMING_CACHE_VOLUME}:${WYOMING_CACHE_PATH}
+      - ${WYOMING_CACHE_PATH}:/cache
     networks:
       - backend
 
@@ -97,12 +97,15 @@ services:
     container_name: minio
     image: minio/minio:latest
     restart: unless-stopped
+    ports:
+      - "9000:9000"
+      - "9001:9001"
     environment:
       - MINIO_ROOT_USER=${MINIO_ROOT_USER}
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
-    command: server ${MINIO_DATA_PATH}
+    command: server /data --console-address ":9001"
     volumes:
-      - ${MINIO_DATA_VOLUME}:${MINIO_DATA_PATH}
+      - ${MINIO_DATA_PATH}:/data
     networks:
       - backend
 
@@ -113,11 +116,13 @@ services:
     container_name: filebrowser
     image: filebrowser/filebrowser:latest
     restart: unless-stopped
+    ports:
+      - "8081:80"
     environment:
       - PUID=${FILEBROWSER_PUID}
       - PGID=${FILEBROWSER_PGID}
     volumes:
-      - ${FILEBROWSER_DATA_VOLUME}:${FILEBROWSER_DATA_PATH}
+      - ${FILEBROWSER_DATA_PATH}:/srv
     networks:
       - backend
 
@@ -129,13 +134,10 @@ services:
     image: ghcr.io/home-assistant/home-assistant:stable
     restart: unless-stopped
     volumes:
-      - ${HOMEASSISTANT_DATA_VOLUME}:${HOMEASSISTANT_CONFIG_PATH}
+      - ${HOMEASSISTANT_DATA_PATH}:/config
     network_mode: host
     devices:
       - ${HOMEASSISTANT_DEVICE}:${HOMEASSISTANT_DEVICE}
-    networks:
-      - backend
-      - zerotier
 
   # =================================
   # 7. GIS / QGIS
@@ -144,8 +146,10 @@ services:
     container_name: qgis-server
     image: kartoza/qgis-server:latest
     restart: unless-stopped
+    ports:
+      - "8082:80"
     volumes:
-      - ${QGIS_PROJECTS_VOLUME}:${QGIS_PROJECTS_PATH}
+      - ${QGIS_PROJECTS_PATH}:/projects
     networks:
       - backend
 
@@ -156,6 +160,8 @@ services:
     container_name: adminer
     image: adminer:latest
     restart: unless-stopped
+    ports:
+      - "8080:8080"
     networks:
       - backend
 
@@ -174,13 +180,17 @@ services:
   # =================================
   zerotier:
     container_name: zerotier
-    image: zt0/zerotier-container
+    image: zerotier/zerotier:latest
     restart: unless-stopped
     environment:
-      - ZT_NETWORK_ID=${ZEROTIER_NETWORK_ID}
+      - ZEROTIER_ONE_NETWORK_IDS=${ZEROTIER_NETWORK_ID}
     cap_add:
       - NET_ADMIN
-      - SYS_MODULE
+      - SYS_ADMIN
+    devices:
+      - /dev/net/tun
+    volumes:
+      - ./volumes/zerotier:/var/lib/zerotier-one
     networks:
       - backend
 
@@ -193,23 +203,8 @@ services:
       - backend
 
 # =================================
-# Volumi locali
-# =================================
-volumes:
-  n8n_data:
-  pg_data:
-  redis_data:
-  wyoming_cache:
-  minio_data:
-  filebrowser_data:
-  qgis_projects:
-  homeassistant_data:
-
-# =================================
 # Rete interna
 # =================================
 networks:
   backend:
     driver: bridge
-  zerotier:
-    external: true
